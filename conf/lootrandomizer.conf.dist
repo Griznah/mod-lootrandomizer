@@ -274,6 +274,14 @@ RandomLoot.Filter.Bonding.Include.QuestItemUnused = 1
 # If 0, random loot can also appear on creatures that had no base loot.
 RandomLoot.Filter.RequireExistingLoot = 0
 
+# Whitelist-only normal pool.
+# Enabled: normal pool = exactly these item IDs; all filters bypassed for the
+# normal pool; pets/mounts and level brackets unaffected (brackets still trim
+# the whitelisted pool). Whitelisted pets/mounts enter the normal pool.
+# ItemIds: comma-separated list of item_template IDs.
+RandomLoot.Whitelist.Enabled = 0
+RandomLoot.Whitelist.ItemIds = ""
+
 ###################################################################################################
 # Optional numeric reference (AzerothCore enums)
 #
