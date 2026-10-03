@@ -8,6 +8,7 @@ AzerothCore module that adds configurable random loot to creature kills.
 - Configurable min/max random items to add per successful roll
 - Smart item-pool filtering from `item_template` with many filterable categories and item types
 - Optional player-level item-level brackets with a configurable symmetric character-level offset to keep random loot within a specified range appropriate for a player level
+- Optional whitelist-only normal pool that bypasses all item filters
 - Separate configurable pet and mount drop pools
 - Works for player kills and pet-owner kills
 - Exclude individual or a range of account IDs to, for example, exclude playerbot accounts.
@@ -55,6 +56,18 @@ excluded solo playerbots remain blocked.
 - Filter normal loot by item category, equipment family, quality, level, expansion, and binding
 - Apply an optional player-level item-level bracket to normal equipment
 - Configure independent pet and mount companion pools and their chances
+
+### Whitelist-Only Normal Pool
+
+Set `RandomLoot.Whitelist.Enabled = 1` to replace the normal pool with exactly the item IDs listed
+in `RandomLoot.Whitelist.ItemIds` (comma-separated `item_template` IDs). While enabled, all item
+filters are bypassed for the normal pool. Whitelisted pets and mounts enter the normal pool; the
+pet and mount companion pools and their chances are unaffected. Player-level brackets, when
+enabled, still trim the whitelisted pool. IDs without a matching `item_template` entry are
+skipped with a warning at startup or reload.
+
+For example, `RandomLoot.Whitelist.ItemIds = "19019,49262"` restricts normal random loot to those
+two items.
 
 ## Notes about filtering
 

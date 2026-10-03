@@ -132,6 +132,12 @@ namespace
         float MountChance = 1.0f;
     };
 
+    struct WhitelistConfig
+    {
+        bool Enabled = false;
+        std::set<uint32> ItemIds;
+    };
+
     class RandomLootState
     {
     public:
@@ -243,6 +249,21 @@ namespace
             }
 
             _filters.RequireExistingLoot = sConfigMgr->GetOption<bool>("RandomLoot.Filter.RequireExistingLoot", false, false);
+
+            // Whitelist normal pool override
+            _whitelist = {};
+            _whitelist.Enabled = sConfigMgr->GetOption<bool>("RandomLoot.Whitelist.Enabled", false, false);
+            std::string whitelistIds = sConfigMgr->GetOption<std::string>("RandomLoot.Whitelist.ItemIds", "", false);
+            if (!whitelistIds.empty())
+            {
+                std::istringstream whitelistStream(whitelistIds);
+                std::string token;
+                while (std::getline(whitelistStream, token, ','))
+                {
+                    try { _whitelist.ItemIds.insert(static_cast<uint32>(std::stoul(token))); }
+                    catch (...) { LOG_WARN("module.RandomLoot", "mod-lootrandomizer: invalid item id in RandomLoot.Whitelist.ItemIds: '{}'", token); }
+                }
+            }
 
             LoadPlayerLevelBracketConfig();
 
@@ -363,8 +384,22 @@ namespace
                     if (MatchesFilters(itemTemplate, true))
                         _mountItemIds.push_back(itemTemplate.ItemId);
                 }
-                else if (MatchesFilters(itemTemplate))
+                else if (!_whitelist.Enabled && MatchesFilters(itemTemplate))
                     _eligibleItemIds.push_back(itemTemplate.ItemId);
+            }
+
+            if (_whitelist.Enabled)
+            {
+                for (uint32 itemId : _whitelist.ItemIds)
+                {
+                    if (sObjectMgr->GetItemTemplate(itemId))
+                        _eligibleItemIds.push_back(itemId);
+                    else
+                        LOG_WARN("module.RandomLoot", "mod-lootrandomizer: whitelist item id {} not found in item_template; skipping", itemId);
+                }
+
+                if (_eligibleItemIds.empty())
+                    LOG_WARN("module.RandomLoot", "mod-lootrandomizer: RandomLoot.Whitelist.Enabled is true but no whitelisted item id resolved to a valid item template. Configured item ids: {}", _whitelist.ItemIds.size());
             }
 
             if (_playerLevelBracket.Enabled)
@@ -890,6 +925,7 @@ namespace
         int32 _maxItems = 1;
         EligibleItemTypes _eligibleTypes;
         RandomLootFilters _filters;
+        WhitelistConfig _whitelist;
         PlayerLevelBracket _playerLevelBracket;
         CompanionLootConfig _companionLoot;
         bool _hasBuiltPoolSinceConfig = false;
